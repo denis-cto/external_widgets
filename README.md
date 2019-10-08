@@ -25,44 +25,14 @@
 5. Сохраните себе оба ключа.
 
 ### 2. Установка Javascript кода капчи на сайт (инструмент для исключения отправки данных ботами)
+Добавьте в шаблон сайта вызов скрипта для работы капчи. Вместо `_reCAPTCHA_site_key` укажите полученный первый ключ при регистрации капчи. 
 
-
-1. На стороне бэкенда, для проверки что запросы с формы не являются запросами ботов, необходимо добавить проверку капчи
-
-1.a Установите зависимости через `composer`. Выполните команду 
-```bash
-# composer require google/recaptcha "^1.2"
-```
-Или добавьте ее в файл `composer.json`
-```
-"require": {
-    "google/recaptcha": "^1.2"
-}
-```
-
-1.b Либо скачайте библиотеку `https://github.com/google/recaptcha/archive/master.zip`
-И подключите следующим образом:
-```php
-require_once '/path/to/recaptcha/src/autoload.php';
-$recaptcha = new \ReCaptcha\ReCaptcha($secret);
-```
-где `$secret` - второй из ключей выданный после регистрации капчи
-
-2. Использование:
-```php
-<?php
-$recaptcha = new \ReCaptcha\ReCaptcha($secret); 
-$resp = $recaptcha->setExpectedHostname(‘mysite.ru’) // укажите домен вашего сайта
-                  ->verify($gRecaptchaResponse, $remoteIp);
-if ($resp->isSuccess()) {
-    // В это место программа попадет когда капча верно проверена!
-} else {
-    $errors = $resp->getErrorCodes();
-}
+```html
+<script src="https://www.google.com/recaptcha/api.js?render=_reCAPTCHA_site_key"></script>
 ```
 
 ### 3. Установка HTML & Javascript кода виджета Mobsted
-1. Скопируйте и вставьте данный код в страницу вашего сайта
+1. Скопируйте и вставьте данный код в файл `scripts/widget.js` в корне вашего сайта
 ```javascript
 const wrapper = document.createElement('div');
 wrapper.innerHTML = `<div id="mobsted-modal">
@@ -369,4 +339,72 @@ function showWidgetToUser(login, uid, shortLink) {
   }
 }
 
+```
+2. Встройте вызов виджета в основной шаблон вашего сайта
+```html
+<script src="scripts/widget.js"></script>
+<script src="https://lanbillingmark1-admin.moe-zkx.ru/front/dist/widgets/mobsted.js"></script>
+<script>
+    showNotAuthLK();
+</script>
+```
+
+### 4. Установка PHP кода для валидации капчи
+1. На стороне бэкенда, для проверки что запросы с формы не являются запросами ботов, необходимо добавить проверку капчи
+
+1.a Установите зависимости через `composer`. Выполните команду 
+```bash
+# composer require google/recaptcha "^1.2"
+```
+Или добавьте ее в файл `composer.json`
+```
+"require": {
+    "google/recaptcha": "^1.2"
+}
+```
+
+1.b Либо скачайте библиотеку `https://github.com/google/recaptcha/archive/master.zip`
+И подключите следующим образом:
+```php
+require_once '/path/to/recaptcha/src/autoload.php';
+$recaptcha = new \ReCaptcha\ReCaptcha($secret);
+```
+где `$secret` - второй из ключей выданный после регистрации капчи
+
+2. Использование:
+```php
+<?php
+$recaptcha = new \ReCaptcha\ReCaptcha($secret); 
+$resp = $recaptcha->setExpectedHostname(‘mysite.ru’) // укажите домен вашего сайта
+                  ->verify($gRecaptchaResponse, $remoteIp);
+if ($resp->isSuccess()) {
+    // В это место программа попадет когда капча верно проверена!
+} else {
+    $errors = $resp->getErrorCodes();
+}
+```
+
+### 5. Вызов виджета Mobsted при загрузке страницы или по нажатию на кнопку
+Выполните следующий код в нужный момент - после загрузки страницы
+```html
+<script>
+    showNotAuthLK();
+</script>
+```
+Или если вы хотите навешать появление виджета на определенное событие
+
+```html
+<script>
+   showWidgetToUser('vasya', 'login', 'short-link.html');
+</script>
+```
+где `'vasya'` - имя пользователя, определенное на вашем сайте (после авторизации, например)
+`'login'` - название колонки в таблице объектов в которой нужно будет искать указанное выше имя пользователя
+
+Возможны варианты поиска логина по другим полям
+
+```html
+<script>
+   showWidgetToUser('234234234234234', 'id', 'short-link.html');
+</script>
 ```
